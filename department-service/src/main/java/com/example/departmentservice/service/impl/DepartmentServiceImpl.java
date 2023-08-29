@@ -2,6 +2,7 @@ package com.example.departmentservice.service.impl;
 
 import com.example.departmentservice.dto.DepartmentDto;
 import com.example.departmentservice.entity.Department;
+import com.example.departmentservice.exception.ResourceNotFoundException;
 import com.example.departmentservice.repository.DepartmentRepository;
 import com.example.departmentservice.service.DepartmentService;
 import lombok.AllArgsConstructor;
@@ -43,6 +44,10 @@ public class DepartmentServiceImpl implements DepartmentService {
     @Override
     public DepartmentDto getDepartmentByCode(String departmentCode) {
         Department department = departmentRepository.findByDepartmentCode(departmentCode);
+
+        if(department == null) {
+            throw new ResourceNotFoundException("Department", "departmentCode", departmentCode);
+        }
 
         /*DepartmentDto departmentDto = new DepartmentDto(
                 department.getId(),
