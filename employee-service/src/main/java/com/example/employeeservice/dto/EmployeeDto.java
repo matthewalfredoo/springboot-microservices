@@ -15,5 +15,15 @@ public class EmployeeDto {
     private String firstName;
     private String lastName;
     private String email;
+    private String departmentCode;
 
+    @Override
+    public String toString() {
+        return "EmployeeDto{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", departmentCode='" + departmentCode + '\'' +
+                '}';
+    }
 }

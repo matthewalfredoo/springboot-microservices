@@ -1,5 +1,7 @@
 package com.example.employeeservice.service.impl;
 
+import com.example.employeeservice.dto.APIResponseDto;
+import com.example.employeeservice.dto.DepartmentDto;
 import com.example.employeeservice.dto.EmployeeDto;
 import com.example.employeeservice.entity.Employee;
 import com.example.employeeservice.exception.ResourceNotFoundException;
@@ -8,7 +10,9 @@ import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.EmployeeService;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @AllArgsConstructor
@@ -17,6 +21,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     private EmployeeRepository employeeRepository;
 
     private ModelMapper modelMapper;
+
+    private RestTemplate restTemplate;
 
     @Override
     public EmployeeDto saveEmployee(EmployeeDto employeeDto) {
@@ -27,9 +33,10 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employeeDto.getEmail()
         );*/
         /** ModelMapper **/
-        //Employee employee = modelMapper.map(employeeDto, Employee.class);
+        Employee employee = modelMapper.map(employeeDto, Employee.class);
         /** MapStruct **/
-        Employee employee = AutoUserMapper.MAPPER.mapToEmployee(employeeDto);
+        // Employee employee = AutoUserMapper.MAPPER.mapToEmployee(employeeDto);
+        System.out.println(employee);
 
         Employee savedEmployee = employeeRepository.save(employee);
 
@@ -40,20 +47,28 @@ public class EmployeeServiceImpl implements EmployeeService {
                 savedEmployee.getEmail()
         );*/
         /** ModelMapper **/
-        // EmployeeDto savedEmployeeDto = modelMapper.map(savedEmployee, EmployeeDto.class);
+        EmployeeDto savedEmployeeDto = modelMapper.map(savedEmployee, EmployeeDto.class);
         /** MapStruct **/
-        EmployeeDto savedEmployeeDto = AutoUserMapper.MAPPER.mapToEmployeeDto(savedEmployee);
+        // EmployeeDto savedEmployeeDto = AutoUserMapper.MAPPER.mapToEmployeeDto(savedEmployee);
 
         return savedEmployeeDto;
     }
 
     @Override
-    public EmployeeDto getEmployeeById(Long id) {
+    public APIResponseDto getEmployeeById(Long id) {
         Employee employee = employeeRepository.findById(id).orElseThrow(
                 () -> {
                     return new ResourceNotFoundException("Employee", "id", id);
                 }
         );
+
+        // get Department from the Department Service based on the the Department code stored in employee object
+        ResponseEntity<DepartmentDto> responseEntity = restTemplate.getForEntity(
+                "http://localhost:8080/api/departments/" + employee.getDepartmentCode(),
+                DepartmentDto.class
+        );
+
+        DepartmentDto departmentDto = responseEntity.getBody();
 
         /*EmployeeDto employeeDto = new EmployeeDto(
                 employee.getId(),
@@ -62,11 +77,15 @@ public class EmployeeServiceImpl implements EmployeeService {
                 employee.getEmail()
         );*/
         /** ModelMapper **/
-        // EmployeeDto employeeDto = modelMapper.map(employee, EmployeeDto.class);
+        EmployeeDto employeeDto = modelMapper.map(employee, EmployeeDto.class);
         /** MapStruct **/
-        EmployeeDto employeeDto = AutoUserMapper.MAPPER.mapToEmployeeDto(employee);
+        // EmployeeDto employeeDto = AutoUserMapper.MAPPER.mapToEmployeeDto(employee);
 
-        return employeeDto;
+        APIResponseDto apiResponseDto = new APIResponseDto();
+        apiResponseDto.setEmployeeDto(employeeDto);
+        apiResponseDto.setDepartmentDto(departmentDto);
+
+        return apiResponseDto;
     }
 
 }
