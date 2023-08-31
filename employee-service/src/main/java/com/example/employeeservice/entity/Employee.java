@@ -27,6 +27,8 @@ public class Employee {
 
     private String departmentCode;
 
+    private String organizationCode;
+
     @Override
     public String toString() {
         return "Employee{" +
