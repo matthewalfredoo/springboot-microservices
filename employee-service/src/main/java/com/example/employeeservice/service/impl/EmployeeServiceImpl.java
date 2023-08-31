@@ -9,8 +9,11 @@ import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.APIClient;
 import com.example.employeeservice.service.EmployeeService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -18,6 +21,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 @AllArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     private EmployeeRepository employeeRepository;
 
@@ -58,9 +63,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         return savedEmployeeDto;
     }
 
-    @CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    // @CircuitBreaker(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
+    @Retry(name = "${spring.application.name}", fallbackMethod = "getDefaultDepartment")
     @Override
     public APIResponseDto getEmployeeById(Long id) {
+        LOGGER.info("inside getEmployeeById() method");
+
         Employee employee = employeeRepository.findById(id).orElseThrow(
                 () -> {
                     return new ResourceNotFoundException("Employee", "id", id);
@@ -102,6 +110,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     public APIResponseDto getDefaultDepartment(Long id, Exception exception) {
+        LOGGER.info("inside getDefaultDepartment() method");
+
         Employee employee = employeeRepository.findById(id).orElseThrow(
                 () -> {
                     return new ResourceNotFoundException("Employee", "id", id);
