@@ -101,7 +101,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         return apiResponseDto;
     }
 
-    public APIResponseDto getDefaultDepartment(Long id) {
+    public APIResponseDto getDefaultDepartment(Long id, Exception exception) {
         Employee employee = employeeRepository.findById(id).orElseThrow(
                 () -> {
                     return new ResourceNotFoundException("Employee", "id", id);
